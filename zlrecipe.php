@@ -4,7 +4,7 @@ Plugin Name: Zip Recipes
 Plugin URI: http://www.ziprecipes.net/
 Plugin GitHub: https://github.com/hgezim/zip-recipes-plugin
 Description: A plugin that adds all the necessary microdata to your recipes, so they will show up in Google's Recipe Search
-Version: 4.0.0.9
+Version: 4.1.0.10
 Author: HappyGezim
 Author URI: http://www.ziprecipes.net/
 License: GPLv3 or later
@@ -38,7 +38,7 @@ if (!defined('ZRDN_VERSION_KEY'))
 	define('ZRDN_VERSION_KEY', 'zrdn_version');
 
 if (!defined('ZRDN_VERSION_NUM'))
-	define('ZRDN_VERSION_NUM', '4.0.0.9');
+	define('ZRDN_VERSION_NUM', '4.1.0.10');
 
 if (!defined('ZRDN_PLUGIN_DIRECTORY'))
 	define('ZRDN_PLUGIN_DIRECTORY', plugins_url() . '/' . dirname(plugin_basename(__FILE__)) . '/');
@@ -115,7 +115,7 @@ function zrdn_debug_to_console($data) {
 }
 
 global $zrdn_db_version;
-$zrdn_db_version = "3.1";	// This must be changed when the DB structure is modified
+$zrdn_db_version = "3.2";	// This must be changed when the DB structure is modified
 
 // Creates ZLRecipe tables in the db if they don't exist already.
 // Don't do any data initialization in this routine as it is called on both install as well as
@@ -125,6 +125,7 @@ $zrdn_db_version = "3.1";	// This must be changed when the DB structure is modif
 // Plugin Ver         DB Ver
 //   1.0 - 1.3        3.0
 //   1.4x - 2.6       3.1  Adds Notes column to recipes table
+//   4.1.0.10 -       3.2  Adds primary key, collation
 
 function zrdn_recipe_install() {
 	global $wpdb;
@@ -133,26 +134,28 @@ function zrdn_recipe_install() {
 	$recipes_table = $wpdb->prefix . "amd_zlrecipe_recipes";
 	$installed_db_ver = get_option("amd_zlrecipe_db_version");
 
+	$charset_collate = $wpdb->get_charset_collate();
+
 	if(strcmp($installed_db_ver, $zrdn_db_version) != 0) {				// An older (or no) database table exists
-		$sql_command = sprintf("CREATE TABLE '%s' (
-            recipe_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            post_id BIGINT(20) UNSIGNED NOT NULL,
-            recipe_title TEXT,
-            recipe_image TEXT,
-            summary TEXT,
-            rating TEXT,
-            prep_time TEXT,
-            cook_time TEXT,
-            total_time TEXT,
-            yield TEXT,
-            serving_size VARCHAR(50),
-            calories VARCHAR(50),
-            fat VARCHAR(50),
-            ingredients TEXT,
-            instructions TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT NOW()
-        	);", $recipes_table);
+		$sql_command = "CREATE TABLE `$recipes_table` (
+            recipe_id bigint(20) unsigned NOT NULL AUTO_INCREMENT  PRIMARY KEY,
+            post_id bigint(20) unsigned NOT NULL,
+            recipe_title text,
+            recipe_image text,
+            summary text,
+            rating text,
+            prep_time text,
+            cook_time text,
+            total_time text,
+            yield text,
+            serving_size varchar(50),
+            calories varchar(50),
+            fat varchar(50),
+            ingredients text,
+            instructions text,
+            notes text,
+            created_at timestamp DEFAULT NOW()
+        	) $charset_collate;";
 
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		dbDelta($sql_command);
