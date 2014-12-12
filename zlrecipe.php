@@ -4,7 +4,7 @@ Plugin Name: Zip Recipes
 Plugin URI: http://www.ziprecipes.net/
 Plugin GitHub: https://github.com/hgezim/zip-recipes-plugin
 Description: A plugin that adds all the necessary microdata to your recipes, so they will show up in Google's Recipe Search
-Version: 4.1.0.10
+Version: 4.1.0.11
 Author: HappyGezim
 Author URI: http://www.ziprecipes.net/
 License: GPLv3 or later
@@ -38,7 +38,7 @@ if (!defined('ZRDN_VERSION_KEY'))
 	define('ZRDN_VERSION_KEY', 'zrdn_version');
 
 if (!defined('ZRDN_VERSION_NUM'))
-	define('ZRDN_VERSION_NUM', '4.1.0.10');
+	define('ZRDN_VERSION_NUM', '4.1.0.11');
 
 if (!defined('ZRDN_PLUGIN_DIRECTORY'))
 	define('ZRDN_PLUGIN_DIRECTORY', plugins_url() . '/' . dirname(plugin_basename(__FILE__)) . '/');
@@ -134,7 +134,7 @@ function zrdn_recipe_install() {
 	$recipes_table = $wpdb->prefix . "amd_zlrecipe_recipes";
 	$installed_db_ver = get_option("amd_zlrecipe_db_version");
 
-	$charset_collate = $wpdb->get_charset_collate();
+	$charset_collate = get_charset_collate();
 
 	if(strcmp($installed_db_ver, $zrdn_db_version) != 0) {				// An older (or no) database table exists
 		$sql_command = "CREATE TABLE `$recipes_table` (
@@ -163,6 +163,19 @@ function zrdn_recipe_install() {
 		update_option("amd_zlrecipe_db_version", $zrdn_db_version);
 
 	}
+}
+
+function get_charset_collate() {
+	global $wpdb;
+
+	$charset_collate = '';
+
+	if ( ! empty( $wpdb->charset ) )
+		$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
+	if ( ! empty( $wpdb->collate ) )
+		$charset_collate .= " COLLATE $wpdb->collate";
+
+	return $charset_collate;
 }
 
 add_action('admin_menu', 'zrdn_menu_pages' );
