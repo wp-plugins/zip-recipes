@@ -4,7 +4,7 @@ Plugin Name: Zip Recipes
 Plugin URI: http://www.ziprecipes.net/
 Plugin GitHub: https://github.com/hgezim/zip-recipes-plugin
 Description: A plugin that adds all the necessary microdata to your recipes, so they will show up in Google's Recipe Search
-Version: 4.1.0.11
+Version: 4.1.0.12
 Author: HappyGezim
 Author URI: http://www.ziprecipes.net/
 License: GPLv3 or later
@@ -38,7 +38,7 @@ if (!defined('ZRDN_VERSION_KEY'))
 	define('ZRDN_VERSION_KEY', 'zrdn_version');
 
 if (!defined('ZRDN_VERSION_NUM'))
-	define('ZRDN_VERSION_NUM', '4.1.0.11');
+	define('ZRDN_VERSION_NUM', '4.1.0.12');
 
 if (!defined('ZRDN_PLUGIN_DIRECTORY'))
 	define('ZRDN_PLUGIN_DIRECTORY', plugins_url() . '/' . dirname(plugin_basename(__FILE__)) . '/');
@@ -189,10 +189,6 @@ function zrdn_menu_pages() {
 	$menu_slug = 'zrdn-settings';
 	$function = 'zrdn_settings';
 	add_menu_page($page_title, $menu_title, $capability, $menu_slug, $function, 'dashicons-carrot');
-
-	// Add submenu page with same slug as parent to ensure no duplicates
-	$settings_title = 'Settings';
-	add_submenu_page($menu_slug, $page_title, $settings_title, $capability, $menu_slug, $function);
 }
 
 // Adds 'Settings' page to the ZipRecipe module
@@ -514,7 +510,7 @@ function zrdn_settings() {
 		         	return false;
 		         });
 			</script>
-			<h3>Register your plugin</h3>
+			<h3>Register Zip Recipes Free</h3>
 			Please register your plugin so we can notify you of any security updates or other fixes we make to Zip
 			Recipes plugin. Registering also helps us troubleshoot any problems you may encounter. When you register, we will automatically
 			receive your blog\'s web address, WordPress version, and names of installed plugins.
@@ -847,14 +843,13 @@ HTML;
 
 	if (! get_option('zrdn_registered'))
 	{
-		// Need to figure out why menu_page_url ends up being undefined
-//		if (function_exists('menu_page_url')) {
-//			$settings_page_url = menu_page_url( 'zrdn-settings', false );
-//
-//		}
-		$form              = '<h3 class="amd-zlrecipe-title">Register plugin</h3>
-							<h4>Thank you for installing Zip Recipes plug. Go to the Zip Recipes Plugin settings page to register the plugin.
-							Be sure to save your draft first.</h4>';
+		require_once(ABSPATH . 'wp-admin/includes/plugin.php');
+
+		$settings_page_url = admin_url( 'admin.php?page=' . 'zrdn-settings' );
+
+		$form              = sprintf('<h3 class="amd-zlrecipe-title">Register Zip Recipes Free</h3>
+							<h4>Thank you for installing Zip Recipes plug. <a href="javascript:window.top.location = \'%s\';">Click here to go to the Zip Recipes plugin settings</a>
+							to register the plugin (it\'s free!).</h4>', $settings_page_url);
 	}
 
 	$output = <<< HTML
