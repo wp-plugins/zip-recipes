@@ -4,7 +4,7 @@ Plugin Name: Zip Recipes
 Plugin URI: http://www.ziprecipes.net/
 Plugin GitHub: https://github.com/hgezim/zip-recipes-plugin
 Description: A plugin that adds all the necessary microdata to your recipes, so they will show up in Google's Recipe Search
-Version: 4.1.0.12
+Version: 4.1.0.13
 Author: HappyGezim
 Author URI: http://www.ziprecipes.net/
 License: GPLv3 or later
@@ -38,7 +38,7 @@ if (!defined('ZRDN_VERSION_KEY'))
 	define('ZRDN_VERSION_KEY', 'zrdn_version');
 
 if (!defined('ZRDN_VERSION_NUM'))
-	define('ZRDN_VERSION_NUM', '4.1.0.12');
+	define('ZRDN_VERSION_NUM', '4.1.0.13');
 
 if (!defined('ZRDN_PLUGIN_DIRECTORY'))
 	define('ZRDN_PLUGIN_DIRECTORY', plugins_url() . '/' . dirname(plugin_basename(__FILE__)) . '/');
@@ -220,6 +220,27 @@ function zrdn_settings() {
 	$outer_border_style = get_option('zlrecipe_outer_border_style');
 	$custom_print_image = get_option('zlrecipe_custom_print_image');
 
+	// load other option values in to variables. These variables are used to load saved values through variable variables
+	$notes_label = get_option('zlrecipe_notes_label');
+	$notes_label_hide = get_option('zlrecipe_notes_label_hide');
+	$prep_time_label = get_option('zlrecipe_prep_time_label');
+	$prep_time_label_hide = get_option('zlrecipe_prep_time_label_hide');
+	$cook_time_label = get_option('zlrecipe_cook_time_label');
+	$cook_time_label_hide = get_option('zlrecipe_cook_time_label_hide');
+	$total_time_label = get_option('zlrecipe_total_time_label');
+	$total_time_label_hide = get_option('zlrecipe_total_time_label_hide');
+	$yield_label = get_option('zlrecipe_yield_label');
+	$yield_label_hide = get_option('zlrecipe_yield_label_hide');
+	$serving_size_label = get_option('zlrecipe_serving_size_label');
+	$serving_size_label_hide = get_option('zlrecipe_serving_size_label_hide');
+	$calories_label = get_option('zlrecipe_calories_label');
+	$calories_label_hide = get_option('zlrecipe_calories_label_hide');
+	$fat_label = get_option('zlrecipe_fat_label');
+	$fat_label_hide = get_option('zlrecipe_fat_label_hide');
+	$rating_label = get_option('zlrecipe_rating_label');
+	$rating_label_hide = get_option('zlrecipe_rating_label_hide');
+
+
 
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		foreach ($_POST as $key=>$val) {
@@ -351,10 +372,11 @@ function zrdn_settings() {
 		$name = strtolower(str_replace(' ', '-', $option));
 		$value = strtolower(str_replace(' ', '_', $option)) . '_label';
 		$value_hide = strtolower(str_replace(' ', '_', $option)) . '_label_hide';
+		$value_hide_attr = ${$value_hide} == "Hide" ? 'checked="checked"' : '';
 		$other_options .= '<tr valign="top">
             <th scope="row">\'' . $option . '\' Label</th>
             <td><input type="text" name="' . $name . '-label" value="' . ${$value} . '" class="regular-text" /><br />
-            <label><input type="checkbox" name="' . $name . '-label-hide" value="Hide" ' . ${$value_hide} . ' /> Don\'t show ' . $option . ' label</label></td>
+            <label><input type="checkbox" name="' . $name . '-label-hide" value="Hide" ' . $value_hide_attr . ' /> Don\'t show ' . $option . ' label</label></td>
         </tr>';
 	}
 
