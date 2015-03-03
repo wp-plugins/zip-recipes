@@ -4,7 +4,7 @@ Plugin Name: Zip Recipes
 Plugin URI: http://www.ziprecipes.net/
 Plugin GitHub: https://github.com/hgezim/zip-recipes-plugin
 Description: A plugin that adds all the necessary microdata to your recipes, so they will show up in Google's Recipe Search
-Version: 4.1.0.14
+Version: 4.1.0.15
 Author: HappyGezim
 Author URI: http://www.ziprecipes.net/
 License: GPLv3 or later
@@ -38,7 +38,7 @@ if (!defined('ZRDN_VERSION_KEY'))
 	define('ZRDN_VERSION_KEY', 'zrdn_version');
 
 if (!defined('ZRDN_VERSION_NUM'))
-	define('ZRDN_VERSION_NUM', '4.1.0.14');
+	define('ZRDN_VERSION_NUM', '4.1.0.15');
 
 if (!defined('ZRDN_PLUGIN_DIRECTORY'))
 	define('ZRDN_PLUGIN_DIRECTORY', plugins_url() . '/' . dirname(plugin_basename(__FILE__)) . '/');
@@ -485,7 +485,13 @@ function zrdn_settings() {
 
             <p><input type="submit" name="submit" id="submit" class="button-primary" value="Save Changes"></p>';
 
-	if (! $registered)
+	$is_server_https = false;
+	if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
+	                    || $_SERVER['SERVER_PORT'] == 443) {
+		$is_server_https = true;
+	}
+
+	if (! $registered && ! $is_server_https)
 	{
 		$forms = '
 			<script type="text/javascript">
@@ -1479,10 +1485,6 @@ function zrdn_format_recipe($recipe) {
 	if (strlen($printed_copyright_statement) > 0) {
 		$output .= '<div id="zl-printed-copyright-statement" itemprop="copyrightHolder">' . $printed_copyright_statement . '</div>';
 	}
-
-	$output .= '</div>' .
-	           '<img id="zrecipe-beacon" src="http://www.ziprecipes.net/beacon?url=' . urlencode($permalink) . '" width="0" height="0">
-		</div>';
 
 	return $output;
 }
