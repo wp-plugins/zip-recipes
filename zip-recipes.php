@@ -4,7 +4,7 @@ Plugin Name: Zip Recipes
 Plugin URI: http://www.ziprecipes.net/
 Plugin GitHub: https://github.com/hgezim/zip-recipes-plugin
 Description: A plugin that adds all the necessary microdata to your recipes, so they will show up in Google's Recipe Search
-Version: 4.2.0.19
+Version: 4.2.0.20
 Author: HappyGezim
 Author URI: http://www.ziprecipes.net/
 License: GPLv3 or later
@@ -38,7 +38,7 @@ if (!defined('ZRDN_VERSION_KEY'))
 	define('ZRDN_VERSION_KEY', 'zrdn_version');
 
 if (!defined('ZRDN_VERSION_NUM'))
-	define('ZRDN_VERSION_NUM', '4.2.0.19');
+	define('ZRDN_VERSION_NUM', '4.2.0.20');
 
 if (!defined('ZRDN_PLUGIN_DIRECTORY'))
 	define('ZRDN_PLUGIN_DIRECTORY', plugins_url() . '/' . dirname(plugin_basename(__FILE__)) . '/');
@@ -48,6 +48,7 @@ add_option("amd_zlrecipe_db_version"); // used to store DB version - leaving as 
 add_option('zrdn_attribution_hide', '');
 add_option('zlrecipe_printed_permalink_hide', '');
 add_option('zlrecipe_printed_copyright_statement', '');
+add_option('zrdn_print_button_label', 'Print');
 add_option('zlrecipe_stylesheet', 'zlrecipe-std');
 add_option('recipe_title_hide', '');
 add_option('zlrecipe_image_hide', '');
@@ -75,6 +76,19 @@ add_option('zlrecipe_calories_label', 'Calories per serving:');
 add_option('zlrecipe_calories_label_hide', '');
 add_option('zlrecipe_fat_label', 'Fat per serving:');
 add_option('zlrecipe_fat_label_hide', '');
+add_option('zlrecipe_carbs_label', 'Carbs per serving:');
+add_option('zlrecipe_carbs_label_hide', '');
+add_option('zlrecipe_protein_label', 'Protein per serving:');
+add_option('zlrecipe_protein_label_hide', '');
+add_option('zlrecipe_fiber_label', 'Fiber per serving:');
+add_option('zlrecipe_fiber_label_hide', '');
+add_option('zlrecipe_sugar_label', 'Sugar per serving:');
+add_option('zlrecipe_sugar_label_hide', '');
+add_option('zlrecipe_saturated_fat_label', 'Saturated fat per serving:');
+add_option('zlrecipe_saturated_fat_label_hide', '');
+add_option('zlrecipe_sodium_label', 'Sodium per serving:');
+add_option('zlrecipe_sodium_label_hide', '');
+
 add_option('zlrecipe_rating_label', 'Rating:');
 add_option('zlrecipe_rating_label_hide', '');
 add_option('zlrecipe_image_width', '');
@@ -118,7 +132,7 @@ function zrdn_debug_to_console($data) {
 }
 
 global $zrdn_db_version;
-$zrdn_db_version = "3.2";	// This must be changed when the DB structure is modified
+$zrdn_db_version = "3.3";	// This must be changed when the DB structure is modified
 
 // Creates ZLRecipe tables in the db if they don't exist already.
 // Don't do any data initialization in this routine as it is called on both install as well as
@@ -129,6 +143,7 @@ $zrdn_db_version = "3.2";	// This must be changed when the DB structure is modif
 //   1.0 - 1.3        3.0
 //   1.4x - 2.6       3.1  Adds Notes column to recipes table
 //   4.1.0.10 -       3.2  Adds primary key, collation
+//   4.2.0.20 -       3.3  Added carbs, protein, fiber, sugar, saturated fat, and sodium
 
 function zrdn_recipe_install() {
 	global $wpdb;
@@ -154,6 +169,12 @@ function zrdn_recipe_install() {
             serving_size varchar(50),
             calories varchar(50),
             fat varchar(50),
+			carbs varchar(50),
+			protein varchar(50),
+			fiber varchar(50),
+			sugar varchar(50),
+			saturated_fat varchar(50),
+			sodium varchar(50),
             ingredients text,
             instructions text,
             notes text,
@@ -223,6 +244,7 @@ function zrdn_settings() {
 	$zrecipe_attribution_hide = get_option('zrdn_attribution_hide');
 	$printed_permalink_hide = get_option('zlrecipe_printed_permalink_hide');
 	$printed_copyright_statement = get_option('zlrecipe_printed_copyright_statement');
+	$print_button_label = get_option('zrdn_print_button_label');
 	$stylesheet = get_option('zlrecipe_stylesheet');
 	$recipe_title_hide = get_option('recipe_title_hide');
 	$image_hide = get_option('zlrecipe_image_hide');
@@ -255,6 +277,18 @@ function zrdn_settings() {
 	$calories_label_hide = get_option('zlrecipe_calories_label_hide');
 	$fat_label = get_option('zlrecipe_fat_label');
 	$fat_label_hide = get_option('zlrecipe_fat_label_hide');
+	$carbs_label = get_option('zlrecipe_carbs_label', 'Carbs:');
+	$carbs_label_hide = get_option('zlrecipe_carbs_label_hide', '');
+	$protein_label = get_option('zlrecipe_protein_label', 'Protein:');
+	$protein_label_hide = get_option('zlrecipe_protein_label_hide', '');
+	$fiber_label = get_option('zlrecipe_fiber_label', 'Fiber:');
+	$fiber_label_hide = get_option('zlrecipe_fiber_label_hide', '');
+	$sugar_label = get_option('zlrecipe_sugar_label', 'Sugar:');
+	$sugar_label_hide = get_option('zlrecipe_sugar_label_hide', '');
+	$saturated_fat_label = get_option('zlrecipe_saturated_fat_label', 'Saturated fat:');
+	$saturated_fat_label_hide = get_option('zlrecipe_saturated_fat_label_hide', '');
+	$sodium_label = get_option('zlrecipe_sodium_label', 'Sodium:');
+	$sodium_label_hide = get_option('zlrecipe_sodium_label_hide', '');
 	$rating_label = get_option('zlrecipe_rating_label');
 	$rating_label_hide = get_option('zlrecipe_rating_label_hide');
 
@@ -279,6 +313,7 @@ function zrdn_settings() {
 			$zrecipe_attribution_hide = $_POST['zrecipe-attribution-hide'];
 			$printed_permalink_hide = $_POST['printed-permalink-hide'];
 			$printed_copyright_statement = $_POST['printed-copyright-statement'];
+			$print_button_label = $_POST['print-button-label'];
 			$stylesheet = $_POST['stylesheet'];
 			$recipe_title_hide = $_POST['recipe-title-hide'];
 			$image_hide = $_POST['image-hide'];
@@ -306,6 +341,18 @@ function zrdn_settings() {
 			$calories_label_hide = $_POST['calories-label-hide'];
 			$fat_label = zrdn_strip_chars($_POST['fat-label']);
 			$fat_label_hide = $_POST['fat-label-hide'];
+			$carbs_label = $_POST['carbs-label'];
+			$carbs_label_hide = $_POST['carbs-label-hide'];
+			$protein_label = $_POST['protein-label'];
+			$protein_label_hide = $_POST['protein-label-hide'];
+			$fiber_label = $_POST['fiber-label'];
+			$fiber_label_hide = $_POST['fiber-label-hide'];
+			$sugar_label = $_POST['sugar-label'];
+			$sugar_label_hide = $_POST['sugar-label-hide'];
+			$saturated_fat_label = $_POST['saturated-fat-label'];
+			$saturated_fat_label_hide = $_POST['saturated-fat-label-hide'];
+			$sodium_label = $_POST['sodium-label'];
+			$sodium_label_hide = $_POST['sodium-label-hide'];
 			$rating_label = zrdn_strip_chars($_POST['rating-label']);
 			$rating_label_hide = $_POST['rating-label-hide'];
 			$image_width = $_POST['image-width'];
@@ -315,6 +362,7 @@ function zrdn_settings() {
 			update_option('zrdn_attribution_hide', $zrecipe_attribution_hide);
 			update_option('zlrecipe_printed_permalink_hide', $printed_permalink_hide );
 			update_option('zlrecipe_printed_copyright_statement', $printed_copyright_statement);
+			update_option('zrdn_print_button_label', $print_button_label);
 			update_option('zlrecipe_stylesheet', $stylesheet);
 			update_option('recipe_title_hide', $recipe_title_hide);
 			update_option('zlrecipe_image_hide', $image_hide);
@@ -342,6 +390,18 @@ function zrdn_settings() {
 			update_option('zlrecipe_calories_label_hide', $calories_label_hide);
 			update_option('zlrecipe_fat_label', $fat_label);
 			update_option('zlrecipe_fat_label_hide', $fat_label_hide);
+			update_option('zlrecipe_carbs_label', $carbs_label);
+			update_option('zlrecipe_carbs_label_hide', $carbs_label_hide);
+			update_option('zlrecipe_protein_label', $protein_label);
+			update_option('zlrecipe_protein_label_hide', $protein_label_hide);
+			update_option('zlrecipe_fiber_label', $fiber_label);
+			update_option('zlrecipe_fiber_label_hide', $fiber_label_hide);
+			update_option('zlrecipe_sugar_label', $sugar_label);
+			update_option('zlrecipe_sugar_label_hide', $sugar_label_hide);
+			update_option('zlrecipe_saturated_fat_label', $saturated_fat_label);
+			update_option('zlrecipe_saturated_fat_label_hide', $saturated_fat_label_hide);
+			update_option('zlrecipe_sodium_label', $sodium_label);
+			update_option('zlrecipe_sodium_label_hide', $sodium_label_hide);
 			update_option('zlrecipe_rating_label', $rating_label);
 			update_option('zlrecipe_rating_label_hide', $rating_label_hide);
 			update_option('zlrecipe_image_width', $image_width);
@@ -386,7 +446,9 @@ function zrdn_settings() {
 	$ins_p = (strcmp($instruction_list_type, 'p') == 0 ? 'checked="checked"' : '');
 	$ins_div = (strcmp($instruction_list_type, 'div') == 0 ? 'checked="checked"' : '');
 	$other_options = '';
-	$other_options_array = array('Rating', 'Prep Time', 'Cook Time', 'Total Time', 'Yield', 'Serving Size', 'Calories', 'Fat', 'Notes');
+	$other_options_array = array('Rating', 'Prep Time', 'Cook Time', 'Total Time', 'Yield', 'Serving Size', 'Calories',
+		'Fat', 'Saturated Fat', 'Carbs', 'Protein', 'Fiber', 'Sugar', 'Sodium', 'Notes');
+
 
 	foreach ($other_options_array as $option) {
 		$name = strtolower(str_replace(' ', '-', $option));
@@ -424,6 +486,10 @@ function zrdn_settings() {
                 <tr valign="top">
                     <th scope="row">Printed Output: Copyright Statement</th>
                     <td><input type="text" name="printed-copyright-statement" value="' . $printed_copyright_statement . '" class="regular-text" /></td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Print Button Label:</th>
+                    <td><input type="text" name="print-button-label" value="' . $print_button_label . '" class="regular-text" /></td>
                 </tr>
             </table>
 
@@ -628,6 +694,7 @@ function zrdn_get_installed_plugins()
 	$plugins = get_plugins();
 	foreach ($plugins as $path => $pluginData)
 	{
+		// if you update the delimiter here, ensure the api.ziprecipes.net changes as well
 		$pluginsString .= $pluginData['Name'] . "|";
 	}
 
@@ -678,6 +745,12 @@ function zrdn_iframe_content($post_info = null, $get_info = null) {
 	$serving_size = 0;
 	$calories = 0;
 	$fat = 0;
+	$carbs = 0;
+	$protein = 0;
+	$fiber = 0;
+	$sugar = 0;
+	$saturated_fat = 0;
+	$sodium = 0;
 	$ingredients = "";
 	$instructions = "";
 	$summary = "";
@@ -795,6 +868,12 @@ function zrdn_iframe_content($post_info = null, $get_info = null) {
 			$serving_size = $recipe->serving_size;
 			$calories = $recipe->calories;
 			$fat = $recipe->fat;
+			$carbs = $recipe->carbs;
+			$protein = $recipe->protein;
+			$fiber = $recipe->fiber;
+			$sugar = $recipe->sugar;
+			$saturated_fat = $recipe->saturated_fat;
+			$sodium = $recipe->sodium;
 			$ingredients = $recipe->ingredients;
 			$instructions = $recipe->instructions;
 		} else {
@@ -823,6 +902,12 @@ function zrdn_iframe_content($post_info = null, $get_info = null) {
 			$serving_size = $post_info["serving_size"];
 			$calories = $post_info["calories"];
 			$fat = $post_info["fat"];
+			$carbs = $post_info['carbs'];
+			$protein = $post_info['protein'];
+			$fiber = $post_info['fiber'];
+			$sugar = $post_info['sugar'];
+			$saturated_fat = $post_info['saturated_fat'];
+			$sodium = $post_info['sodium'];
 			$ingredients = $post_info["ingredients"];
 			$instructions = $post_info["instructions"];
 			if ($recipe_title != null && $recipe_title != '' && $ingredients != null && $ingredients != '') {
@@ -843,6 +928,12 @@ function zrdn_iframe_content($post_info = null, $get_info = null) {
 	$serving_size = esc_attr($serving_size);
 	$calories = esc_attr($calories);
 	$fat = esc_attr($fat);
+	$carbs = esc_attr($carbs);
+	$protein = esc_attr($protein);
+	$fiber = esc_attr($fiber);
+	$sugar = esc_attr($sugar);
+	$saturated_fat = esc_attr($saturated_fat);
+	$sodium = esc_attr($sodium);
 	$ingredients = esc_textarea($ingredients);
 	$instructions = esc_textarea($instructions);
 	$summary = esc_textarea($summary);
@@ -903,7 +994,13 @@ function zrdn_iframe_content($post_info = null, $get_info = null) {
                 <p><label>Yield</label> <input type='text' name='yield' value='$yield' /></p>
                 <p><label>Serving Size</label> <input type='text' name='serving_size' value='$serving_size' /></p>
                 <p><label>Calories</label> <input type='text' name='calories' value='$calories' /></p>
+                <p><label>Carbs</label> <input type='text' name='carbs' value='$carbs' /></p>
+                <p><label>Protein</label> <input type='text' name='protein' value='$protein' /></p>
+                <p><label>Fiber</label> <input type='text' name='fiber' value='$fiber' /></p>
+                <p><label>Sugar</label> <input type='text' name='sugar' value='$sugar' /></p>
+                <p><label>Sodium</label> <input type='text' name='sodium' value='$sodium' /></p>
                 <p><label>Fat</label> <input type='text' name='fat' value='$fat' /></p>
+                <p><label>Saturated fat</label> <input type='text' name='saturated_fat' value='$saturated_fat' /></p>
                 <p class='cls'><label>Notes</label> <textarea name='notes'>$notes</textarea></label></p>
             </div>
             <input type='submit' value='$submit' name='add-recipe-button' />
@@ -1081,6 +1178,12 @@ function zrdn_insert_db($post_info) {
 		"serving_size" =>  $post_info["serving_size"],
 		"calories" => $post_info["calories"],
 		"fat" => $post_info["fat"],
+		"carbs" => $post_info['carbs'],
+		"protein" => $post_info['protein'],
+		"fiber" => $post_info['fiber'],
+		"sugar" => $post_info['sugar'],
+		"saturated_fat" => $post_info['saturated_fat'],
+		"sodium" => $post_info['sodium'],
 		"ingredients" => $post_info["ingredients"],
 		"instructions" => $post_info["instructions"],
 		"notes" => $post_info["notes"],
@@ -1182,6 +1285,22 @@ function zrdn_convert_to_recipe($post_text) {
 }
 
 add_filter('the_content', 'zrdn_convert_to_recipe' );
+
+
+/**
+ * Replace zip recipes short-code with recipe.
+ * This is used for 'the_post' filtering.
+ * @param $post - WordPress post object.
+ * @return Nothing as there is no need to return the $post object.
+ *  https://developer.wordpress.org/reference/classes/wp_post/
+ */
+function zrdn_recipe_summary($post) {
+	if ($post->post_content != null) {
+		$post->post_content = zrdn_convert_to_recipe($post->post_content);
+	}
+}
+
+add_filter('the_post', 'zrdn_recipe_summary');
 
 // Pulls a recipe from the db
 function zrdn_select_recipe_db($recipe_id) {
@@ -1315,12 +1434,16 @@ function zrdn_format_recipe($recipe) {
 	if (strcmp(get_option('zlrecipe_print_link_hide'), 'Hide') != 0) {
 		$custom_print_image = get_option('zlrecipe_custom_print_image');
 		$button_type = 'butn-link';
-		$button_image = 'Print'; // NOT a button image in this case, but this is the legacy version
+
+		$print_button = get_option('zrdn_print_button_label');
 		if (strlen($custom_print_image) > 0) {
 			$button_type = 'print-link';
-			$button_image = '<img src="' . $custom_print_image . '">';
+			$print_button = '<img src="' . $custom_print_image . '">';
 		}
-		$output .= '<div class="zlrecipe-print-link fl-r"><a class="' . $button_type . '" title="Print this recipe" href="javascript:void(0);" onclick="zlrPrint(\'zlrecipe-container-' . $recipe->recipe_id . '\', \'' . ZRDN_PLUGIN_DIRECTORY . '\'); return false">' . $button_image . '</a></div>';
+		$output .= '<div class="zlrecipe-print-link fl-r"><a class="' . $button_type .
+		           '" title="Print this recipe" href="javascript:void(0);" onclick="zlrPrint(\'zlrecipe-container-' .
+		           $recipe->recipe_id . '\', \'' . ZRDN_PLUGIN_DIRECTORY . '\'); return false" rel="nofollow">' . $print_button .
+		           '</a></div>';
 	}
 
 	// add the title and close the item class
@@ -1385,7 +1508,9 @@ function zrdn_format_recipe($recipe) {
 		$output .= '<span itemprop="recipeYield">' . $recipe->yield . '</span></p>';
 	}
 
-	if ($recipe->serving_size != null || $recipe->calories != null || $recipe->fat != null) {
+	if ($recipe->serving_size != null || $recipe->calories != null || $recipe->fat != null || $recipe->carbs != null
+	    || $recipe->protein != null || $recipe->fiber != null || $recipe->sugar != null || $recipe->saturated_fat != null
+	    || $recipe->sodium != null) {
 		$output .= '<div id="zlrecipe-nutrition" itemprop="nutrition" itemscope itemtype="http://schema.org/NutritionInformation">';
 		if ($recipe->serving_size != null) {
 			$output .= '<p id="zlrecipe-serving-size">';
@@ -1408,6 +1533,59 @@ function zrdn_format_recipe($recipe) {
 			}
 			$output .= '<span itemprop="fatContent">' . $recipe->fat . '</span></p>';
 		}
+		if($recipe->saturated_fat != null)
+		{
+			$output .= '<p id="zlrecipe-saturated-fat">';
+			if (strcmp(get_option('zlrecipe_saturated_fat_label_hide'), 'Hide') != 0)
+			{
+				$output .= get_option('zlrecipe_saturated_fat_label') . ' ';
+			}
+			$output .= '<span itemprop="saturatedFatContent">' . $recipe->saturated_fat . '</span></p>';
+		}
+		if($recipe->carbs != null)
+		{
+			$output .= '<p id="zlrecipe-carbs">';
+			if (strcmp(get_option('zlrecipe_carbs_label_hide'), 'Hide') != 0)
+			{
+				$output .= get_option('zlrecipe_carbs_label') . ' ';
+			}
+			$output .= '<span itemprop="carbohydrateContent">' . $recipe->carbs . '</span></p>';
+		}
+		if($recipe->protein != null)
+		{
+			$output .= '<p id="zlrecipe-protein">';
+			if (strcmp(get_option('zlrecipe_protein_label_hide'), 'Hide') != 0)
+			{
+				$output .= get_option('zlrecipe_protein_label') . ' ';
+			}
+			$output .= '<span itemprop="proteinContent">' . $recipe->protein . '</span></p>';
+		}
+		if($recipe->fiber != null)
+		{
+			$output .= '<p id="zlrecipe-fiber">';
+			if (strcmp(get_option('zlrecipe_fiber_label_hide'), 'Hide') != 0)
+			{
+				$output .= get_option('zlrecipe_fiber_label') . ' ';
+			}
+			$output .= '<span itemprop="fiberContent">' . $recipe->fiber . '</span></p>';
+		}
+		if($recipe->sugar != null)
+		{
+			$output .= '<p id="zlrecipe-sugar">';
+			if (strcmp(get_option('zlrecipe_sugar_label_hide'), 'Hide') != 0)
+			{
+				$output .= get_option('zlrecipe_sugar_label') . ' ';
+			}
+			$output .= '<span itemprop="sugarContent">' . $recipe->sugar . '</span></p>';
+		}
+		if ($recipe->sodium != null) {
+			$output .= '<p id="zlrecipe-sodium">';
+			if (strcmp(get_option('zlrecipe_sodium_label_hide'), 'Hide') != 0) {
+				$output .= get_option('zlrecipe_sodium_label') . ' ';
+			}
+			$output .= '<span itemprop="sodiumContent">' . $recipe->sodium . '</span></p>';
+		}
+
 		$output .= '</div>';
 	}
 
