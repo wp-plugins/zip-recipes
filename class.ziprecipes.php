@@ -14,6 +14,10 @@ class ZipRecipes {
 
 	const DB_VERSION = "3.3"; // This must be changed when the DB structure is modified
 
+	const registration_url = "https://api.ziprecipes.net/installation/register/";
+
+	const beacon_image_url = "//stats.ziprecipes.net/piwik.php?idsite=1&rec=1";
+
 	/**
 	 * Init function.
 	 */
@@ -441,9 +445,11 @@ class ZipRecipes {
 		$output .= '<' . $ingredient_type . ' id="zlrecipe-ingredients-list">';
 		$i = 0;
 		$ingredients = explode("\n", $recipe->ingredients);
+		$beacon_added = false;
 		foreach ($ingredients as $ingredient) {
 			$ingredientClassString = implode(' ', $ingredientClassArray);
-			$output .= self::zrdn_format_item($ingredient, $ingredient_tag, $ingredientClassString, 'ingredients', 'zlrecipe-ingredient-', $i);
+			$addBeacon = $i === 0 ? true : false; # only add beacon on first ingredient as it tracks the whole recipe
+			$output .= self::zrdn_format_item($ingredient, $ingredient_tag, $ingredientClassString, 'ingredients', 'zlrecipe-ingredient-', $i, $addBeacon);
 			$i++;
 		}
 
@@ -518,14 +524,13 @@ class ZipRecipes {
 
 		$output .= '</div></div>';
 
-
 		return $output;
 	}
 
 	// Processes markup for attributes like labels, images and links
 	// !Label
 	// %image
-	public static function zrdn_format_item($item, $elem, $class, $itemprop, $id, $i) {
+	public static function zrdn_format_item($item, $elem, $class, $itemprop, $id, $i, $add_beacon=false) {
 
 		if (preg_match("/^%(\S*)/", $item, $matches)) {	// IMAGE Updated to only pull non-whitespace after some blogs were adding additional returns to the output
 			$output = '<img class = "' . $class . '-image" src="' . $matches[1] . '" />';
@@ -542,6 +547,12 @@ class ZipRecipes {
 		}
 
 		$output .= self::zrdn_richify_item($item, $class);
+
+		// Adding beacon here to prevent a whole vertial block space from being taken up (i.e. so it can be inline)
+		if ($add_beacon)
+		{
+			$output .= '<img src="' . self::beacon_image_url . '" width="1" height="1" border="0" style="width: 1px; height: 1px; border:0" alt="" />';
+		}
 		$output .= '</' . $elem . '>';
 
 		return $output;
@@ -933,7 +944,7 @@ class ZipRecipes {
 
             <p><input type="submit" name="submit" id="submit" class="button-primary" value="Save Changes"></p>';
 
-		if (! $registered && ! ZipRecipesUtil::isServerProtocolHttps())
+		if (! $registered)
 		{
 			$forms = '
 			<script type="text/javascript">
@@ -945,7 +956,7 @@ class ZipRecipes {
 	                 $registerButton.val("Registering...");
 	                 $registerButton.attr("disabled", true);
 
-	                 var postUrl = "http://api.ziprecipes.net/installation/register/";
+	                 var postUrl = "'. self::registration_url . '";
 
 		         	jQuery.post(postUrl, $form.serialize(), function(data)
 		         	{
@@ -1302,7 +1313,7 @@ class ZipRecipes {
 
 		$id = (int) $_REQUEST["post_id"];
 
-		$registration_required = ! get_option('zrdn_registered') && ! ZipRecipesUtil::isServerProtocolHttps();
+		$registration_required = ! get_option('zrdn_registered');
 
 		require_once(ABSPATH . 'wp-admin/includes/plugin.php');
 		$settings_page_url = admin_url( 'admin.php?page=' . 'zrdn-settings' );
